@@ -5,34 +5,28 @@
 :Copyright: 2020, Karr Lab
 :License: MIT
 """
-import datetime
-from pprint import pprint
 from openpyxl import load_workbook
+from pprint import pprint
 from serpapi.google_scholar_search_results import GoogleScholarSearchResults
 import ast
 import bibtexparser
-import csv
+import datetime
 import re
 import requests
 import sys
 import time
-import xml.etree.ElementTree as ET
 import urllib.parse
+import xml.etree.ElementTree as ET
 
 BIBLIOGRAPHY = 'paper_cell_sys__guidelines_4_repro_models_2020.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
 OUTPUT_LATEX_TABLE_FILE = 'curated_standards.tex'
-PUB_MED_TEMPLATE = 'https://www.ncbi.nlm.nih.gov/pmc/articles/pmid/{}/citedby/?tool=pubmed'
 TOOL_EMAIL = 'tool=mssm_citation_research&email=Arthur.Goldberg%40mssm.edu'
 EUTILS = 'eutils.ncbi.nlm.nih.gov/entrez/eutils'
 NCBI_ELINK_TEMPLATE = (f"https://{EUTILS}/elink.fcgi?dbfrom=pubmed&linkname=pubmed_pmc_ref"
                        f"s&id={{}}&{TOOL_EMAIL}")
 NCBI_ESEARCH_TEMPLATE = f"https://{EUTILS}/esearch.fcgi?db=pubmed&term={{}}"
-ID_CONVERTER_API = f"https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?&ids={{}}&{TOOL_EMAIL}"
 ESUMMARY_TEMPLATE = f"https://{EUTILS}/esummary.fcgi?db=pubmed&id={{}}&retmode=json&{TOOL_EMAIL}"
-CITATION_COUNT_RE = "Is Cited by the Following (\d+) Articles"
-PUB_YEAR_RE = '<span class="citation-publication-date">(\d+)'
-SLEEP_TIME = 0.4
 
 
 class GoogleScholar(object):
@@ -40,11 +34,12 @@ class GoogleScholar(object):
     SERP_API_KEY = '8973042c37e0867a7cf0bddfdfb7dae2ee16268f5a331f5d5149c9a370a939e0'
 
     @staticmethod
-    def get_gs_results(title):
-        return '', 20, 2010, []
+    def get_gs_results_mock(title):
+        # test version of get_gs_results, which avoids using billable searches
+        return '', len(title), 2000 + len(title)/10, []
 
     @staticmethod
-    def get_gs_results_real(title):
+    def get_gs_results(title):
         # get num citations, publication year, and title from GS
         errors = []
         pub_year = None
@@ -56,7 +51,7 @@ class GoogleScholar(object):
         if match is None:
             errors.append(f"cannot get year for {title}")
         else:
-            pub_year = int(match.group(1)) 
+            pub_year = int(match.group(1))
         num_citations = data['organic_results'][0]["inline_links"]["cited_by"]["total"]
         gs_title = data['organic_results'][0]["title"]
         return gs_title, num_citations, pub_year, errors
@@ -64,12 +59,14 @@ class GoogleScholar(object):
 
 class NCBIUtils(object):
 
+    SLEEP_TIME = 0.4
+
     @staticmethod
     def get_pm_id(title):
         """ Get PubMed ID for a title from the PutMed service, if possible """
         url = NCBI_ESEARCH_TEMPLATE.format(urllib.parse.quote(title))
         errors = []
-        time.sleep(SLEEP_TIME)
+        time.sleep(NCBIUtils.SLEEP_TIME)
         response = requests.get(url)
         if response.status_code != requests.codes.ok:
             errors.append(f"NCBI_ESEARCH_TEMPLATE request error {response.status_code} for title '{title}'")
@@ -94,7 +91,7 @@ class NCBIUtils(object):
     def get_num_citations(pm_id):
         url = NCBI_ELINK_TEMPLATE.format(pm_id)
         errors = []
-        time.sleep(SLEEP_TIME)
+        time.sleep(NCBIUtils.SLEEP_TIME)
         response = requests.get(url)
         if response.status_code != requests.codes.ok:
             errors.append(f"request error {response.status_code} for pmc_id {pmc_id}")
@@ -112,7 +109,7 @@ class NCBIUtils(object):
         # get publication year
         url = ESUMMARY_TEMPLATE.format(pm_id)
         errors = []
-        time.sleep(SLEEP_TIME)
+        time.sleep(NCBIUtils.SLEEP_TIME)
         response = requests.get(url)
         if response.status_code != requests.codes.ok:
             errors.append(f"request error {response.status_code} for pm_id {pm_id}")
@@ -124,10 +121,11 @@ class NCBIUtils(object):
         if match is None:
             errors.append(f"year not found in '{pubdate}' for {pm_id}")
         else:
-            pub_year = int(match.group(1)) 
+            pub_year = int(match.group(1))
         # get title
         title = resp_dict["result"][str(pm_id)]["title"][:-1]
         return pub_year, title, errors
+
 
 class Biblio(object):
     def __init__(self, filename):
@@ -140,6 +138,7 @@ class Biblio(object):
         for citation in self.bib_database.entries:
             if citation['title'] == title:
                 return citation['ID']
+
 
 class CuratedStandards(object):
 
@@ -179,7 +178,7 @@ class CuratedStandards(object):
         if missing:
             print('Missing titles:', missing, file=sys.stderr)
         else:
-            print(f"All {len(titles)} title(s) found.")
+            print(f"All {len(titles)} title(s) found in '{self.biblio.filename}'.")
 
     def read_curated_standards_column(self, col_name):
         entries = []
@@ -198,7 +197,7 @@ class CuratedStandards(object):
             elif errors is None:
                 missing_ids.append((title, 'no error'))
             else:
-                missing_ids.append((title, errors))            
+                missing_ids.append((title, errors))
         if missing_ids:
             print('Titles missing PM citations:', file=sys.stderr)
             pprint(missing_ids, stream=sys.stderr)
@@ -267,7 +266,7 @@ class CuratedStandards(object):
             if not drop:
                 new_row.append(entry)
         return new_row
-        
+
     def generate_latex_table(self, columns_to_drop=None):
         # columns: standard, type, title with reference, year published, PM citations / year, GS citations / year
         # columns_to_drop contains true values for columns to remove from the table
@@ -315,41 +314,68 @@ class CuratedStandards(object):
 
                 # compute PM citations / year
                 if self.PM_CITATIONS in curated_standard:
-                
+
                     PM_cites_per_year = curated_standard[self.PM_CITATIONS] / age
                     row[4] = f"{PM_cites_per_year:.1f}"
 
                 # compute GS citations / year
                 if self.GS_CITATIONS in curated_standard:
-                
+
                     GS_cites_per_year = curated_standard[self.GS_CITATIONS] / age
                     row[5] = f"{GS_cites_per_year:.1f}"
 
+            rows.append(row)
+
+        # sort rows by decreasing Google Scholar citations
+        rows.sort(key=lambda curated_std: float(curated_std[5]), reverse=True)
+
+        tmp_rows = []
+        for row in rows:
             sized_row = []
             for shrink, entry in zip(small_columns, row):
                 if shrink:
                     entry = f"\\small{{{entry}}}"
                 sized_row.append(entry)
-            rows.append(sized_row)
+            tmp_rows.append(sized_row)
+        rows = tmp_rows
 
-        for row in rows:
-            print(row)
-
+        CAPTION = """Standards and tools ordered by estimated influence.
+The standards and tools recommended in this paper are arranged by the annual citation rate at Google Scholar for their
+primary publication.
+To provide a measure of influence focused on biomedical research PubMed citations per year are shown when available.
+The Type column categorizes each tool according to its overall purpose.\\\\
+These data were obtained by a reproducible analysis.
+Two hand-curated tables were input: a list of the standards and tools containing the titles of the primary publications, and a LaTeX bibliography containing the papers.
+Each paper's publication year and Google Scholar citation counts were obtained via a Google Scholar API.
+PubMed citation counts were obtained via the PubMed API \cite{sayers2010general}.
+These analyses can be reproduced by executing a single command.
+The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}.
+"""
         END_OF_LINE = '\\\\\n'
         HLINE = '\\hline\n'
-        TABLE_START = '\n\\begin{tabular}'
-        TABLE_END = '\\end{tabular}\n'
+        TABLE_START = '\n\\begin{longtable}'
+        TABLE_END = '\\end{longtable}\n'
         table = [TABLE_START]
         if columns_to_drop:
             column_alignments = drop_columns(column_alignments, columns_to_drop)
         table.append('{ |' + '|'.join(column_alignments) + '| } \n')
-        table.append(HLINE)
+        table.append(f"\\caption{{{CAPTION}}}\\\\")
         if columns_to_drop:
             columns = drop_columns(columns, columns_to_drop)
         small_columns = [f"\\scriptsize{{{col}}}" for col in columns]
-        table.append(' &'.join([f"\\textbf{{{col}}}" for col in small_columns]))
-        table.append('\\\\ \n')
-        table.append(HLINE)
+
+        header = []
+        header.append(HLINE)
+        header.append(' &'.join([f"\\textbf{{{col}}}" for col in small_columns]))
+        header.append('\\\\ \n')
+        header.append(HLINE)
+
+        table.extend(header)
+        table.append('\\endfirsthead')
+
+        table.extend(header)
+        table.append('\\endhead')
+
         for row in rows:
             if columns_to_drop:
                 row = drop_columns(row, columns_to_drop)
@@ -358,14 +384,15 @@ class CuratedStandards(object):
             table.append(HLINE)
         table.append(TABLE_END)
         complete_table = ''.join(table)
-        # todo: 
-        # fit on 1 page, or multipage it
-        # sort by decreaseing Schollar cites
-        # make citations work
+        # todo to finish
         # include in paper
+        # improve formatting:
+        #   fixed width numbers
+        #   right align numbers
+        #   no spacing between lines in header row
+        #
         # commit
-        # get feedback
-        print(complete_table)
+        # script to do pip installs and run
         return complete_table
 
     def output_latex_table(self, filename=OUTPUT_LATEX_TABLE_FILE, columns_to_drop=None):
@@ -381,81 +408,7 @@ def main():
     curated_standards.enrich_with_pm_ids()
     curated_standards.enrich_with_bib_key()
     curated_standards.enrich_with_num_pm_citations()
-    print('curated_standards')
-    pprint(curated_standards.curated_standards)
-    # curated_standards.output_latex_table(columns_to_drop=(False, False, True, False, False, False))
     curated_standards.output_latex_table()
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-def main_old(pmids):
-    print(f"PM ID\t# PM cites\t# GS cites\tyear\ttitle")
-    errors = []
-    for pmid in pmids:
-        num_citations, error = get_num_citations(pmid)
-        if error is not None:
-            errors.extend(error)
-
-        year, title, error = get_pub_metadata(pmid)
-        if error is not None:
-            errors.extend(error)
-
-        gs_title, num_gs_citations = get_gs_results(title)
-        
-        print(f"{pmid}\t{num_citations}\t{num_gs_citations}\t{year}\t{title}")
-
-    if errors:
-        print('Errors:')
-        print('\n'.join(errors))
-
-def get_num_citations_old(pm_id):
-    url = NCBI_ELINK_TEMPLATE.format(pm_id)
-    errors = []
-    # time.sleep(SLEEP_TIME)
-    response = requests.get(url)
-    if response.status_code != requests.codes.ok:
-        errors.append(f"request error {response.status_code} for {pm_id}")
-        return (0, None, errors)
-
-    citations = 0
-    match = re.search(CITATION_COUNT_RE, response.text, flags=re.ASCII)
-    if match is None:
-        errors.append(f"no citations count for {pm_id}")
-    else:
-        citations = int(match.group(1)) 
-
-    year = None
-    match = re.search(PUB_YEAR_RE, response.text, flags=re.ASCII)
-    if match is None:
-        errors.append(f"no year for {pm_id}")
-    else:
-        year = int(match.group(1)) 
-
-    return (citations, year, errors)
-
-def get_pmc_id_old(pm_id):
-    # convert PM ID to PMC ID
-    url = ID_CONVERTER_API.format(pm_id)
-    errors = []
-    time.sleep(SLEEP_TIME)
-    response = requests.get(url)
-    if response.status_code != requests.codes.ok:
-        errors.append(f"request error {response.status_code} for pm_id {pm_id}")
-        return (None, errors)
-    root = ET.fromstring(response.text)
-    record = list(root.iter('record'))[0]
-    # {'requested-id': '23193287', 'pmcid': 'PMC3531190', 'pmid': '23193287', 'doi': '10.1093/nar/gks1195'}
-    return record.attrib['pmcid'], None
