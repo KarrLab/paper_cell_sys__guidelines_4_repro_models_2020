@@ -31,16 +31,15 @@ ESUMMARY_TEMPLATE = f"https://{EUTILS}/esummary.fcgi?db=pubmed&id={{}}&retmode=j
 
 class GoogleScholar(object):
 
-    SERP_API_KEY = '8973042c37e0867a7cf0bddfdfb7dae2ee16268f5a331f5d5149c9a370a939e0'
+    SERP_API_KEY = '1f4b0a2ad87833c794edfb0803d6cb42b6cd4fcde02a901a077efda006bcf55f'
 
     @staticmethod
-    def get_gs_results_mock(title):
-        # test version of get_gs_results, which avoids using billable searches
-        return '', len(title), 2000 + len(title)/10, []
-
-    @staticmethod
-    def get_gs_results(title):
+    def get_gs_results(title, mock=False):
         # get num citations, publication year, and title from GS
+        if mock:
+            # test version of get_gs_results, which avoids using billable searches
+            return '', len(title), 2000 + len(title)/10, []
+
         errors = []
         pub_year = None
         client = GoogleScholarSearchResults({"q": title, "serp_api_key": GoogleScholar.SERP_API_KEY})
@@ -155,7 +154,7 @@ class CuratedStandards(object):
     def __init__(self, filename, biblio):
         self.filename = filename
         self.biblio = biblio
-        self.curated_standards = self.read_curated_standards(filename)
+        self.curated_standards = self.read_curated_standards(filename)[:3]
 
     def read_curated_standards(self, filename):
         workbook = load_workbook(filename, data_only=True)
@@ -240,7 +239,7 @@ class CuratedStandards(object):
         missing_gs_data = []
         for curated_standard in self.curated_standards:
             title = curated_standard[self.TITLE]
-            gs_title, num_citations, pub_date, errors = GoogleScholar.get_gs_results(title)
+            gs_title, num_citations, pub_date, errors = GoogleScholar.get_gs_results(title, mock=True)
             if num_citations is None or pub_date is None or errors:
                 missing_gs_data.append((title, errors))
             else:
@@ -282,12 +281,17 @@ class CuratedStandards(object):
                              'c',
                              'c',
                              'c')
-        column_alignments = ('m{2.2cm}',
-                             'm{5cm}',
-                             'm{1.2cm}',
-                             'm{1cm}',
-                             'm{1.2cm}',
-                             'm{1cm}')
+
+        # these definitions required in Latex preamble
+        # see: https://tex.stackexchange.com/a/119561
+        # \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+        # \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+        column_alignments = ('L{2.2cm}',
+                             'L{5cm}',
+                             'L{1.2cm}',
+                             'L{1cm}',
+                             'R{1.2cm}',
+                             'R{1cm}')
         small_columns = (1,
                          1,
                          0,
@@ -344,13 +348,14 @@ The standards and tools recommended in this paper are arranged by the annual cit
 primary publication.
 To provide a measure of influence focused on biomedical research PubMed citations per year are shown when available.
 The Type column categorizes each tool according to its overall purpose.\\\\
-These data were obtained by a reproducible analysis.
+\\\\
+Reproducible methods were used to obtain these data.
 Two hand-curated tables were input: a list of the standards and tools containing the titles of the primary publications, and a LaTeX bibliography containing the papers.
 Each paper's publication year and Google Scholar citation counts were obtained via a Google Scholar API.
 PubMed citation counts were obtained via the PubMed API \cite{sayers2010general}.
 These analyses can be reproduced by executing a single command.
-The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}.
-"""
+The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}."""
+
         END_OF_LINE = '\\\\\n'
         HLINE = '\\hline\n'
         TABLE_START = '\n\\begin{longtable}'
@@ -359,7 +364,7 @@ The hand-curated tables and source code for this analysis are available at \cite
         if columns_to_drop:
             column_alignments = drop_columns(column_alignments, columns_to_drop)
         table.append('{ |' + '|'.join(column_alignments) + '| } \n')
-        table.append(f"\\caption{{{CAPTION}}}\\\\")
+        table.append(f"\\caption{{{CAPTION}}}\\\\\n")
         if columns_to_drop:
             columns = drop_columns(columns, columns_to_drop)
         small_columns = [f"\\scriptsize{{{col}}}" for col in columns]
@@ -370,11 +375,13 @@ The hand-curated tables and source code for this analysis are available at \cite
         header.append('\\\\ \n')
         header.append(HLINE)
 
+        table.append('% header for first page\n')
         table.extend(header)
-        table.append('\\endfirsthead')
+        table.append('\\endfirsthead\n')
 
+        table.append('% same header for subsequent pages\n')
         table.extend(header)
-        table.append('\\endhead')
+        table.append('\\endhead\n')
 
         for row in rows:
             if columns_to_drop:
@@ -391,8 +398,11 @@ The hand-curated tables and source code for this analysis are available at \cite
         #   right align numbers
         #   no spacing between lines in header row
         #
-        # commit
         # script to do pip installs and run
+        # remove API key from code
+        # provide instructions on using serpapi.google_scholar_search_results
+        # label release used for paper
+        # incorporate column of data from survey, reproducibily from spreadsheet
         return complete_table
 
     def output_latex_table(self, filename=OUTPUT_LATEX_TABLE_FILE, columns_to_drop=None):
