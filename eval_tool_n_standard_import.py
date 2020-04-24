@@ -11,6 +11,7 @@ from serpapi.google_scholar_search_results import GoogleScholarSearchResults
 import ast
 import bibtexparser
 import datetime
+import keys
 import re
 import requests
 import sys
@@ -31,7 +32,10 @@ ESUMMARY_TEMPLATE = f"https://{EUTILS}/esummary.fcgi?db=pubmed&id={{}}&retmode=j
 
 class GoogleScholar(object):
 
-    SERP_API_KEY = '1f4b0a2ad87833c794edfb0803d6cb42b6cd4fcde02a901a077efda006bcf55f'
+    # To use SerpApi, create an account, get your private API key, create a keys.py file on the Python PATH, assign
+    #   SERP_API_KEY = 'your private API key'
+    # in keys.py. Keep keys.py secure.
+    SERP_API_KEY = keys.SERP_API_KEY
 
     @staticmethod
     def get_gs_results(title, mock=False):
