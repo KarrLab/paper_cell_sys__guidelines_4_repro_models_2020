@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 
 BIBLIOGRAPHY = 'paper_cell_sys__guidelines_4_repro_models_2020.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
-OUTPUT_LATEX_TABLE_FILE = 'curated_standards.tex'
+OUTPUT_LATEX_TABLE_FILE = 'evaluated_standards.tex'
 TOOL_EMAIL = 'tool=mssm_citation_research&email=Arthur.Goldberg%40mssm.edu'
 EUTILS = 'eutils.ncbi.nlm.nih.gov/entrez/eutils'
 NCBI_ELINK_TEMPLATE = (f"https://{EUTILS}/elink.fcgi?dbfrom=pubmed&linkname=pubmed_pmc_ref"
@@ -158,7 +158,7 @@ class CuratedStandards(object):
     def __init__(self, filename, biblio):
         self.filename = filename
         self.biblio = biblio
-        self.curated_standards = self.read_curated_standards(filename)[:3]
+        self.curated_standards = self.read_curated_standards(filename)
 
     def read_curated_standards(self, filename):
         workbook = load_workbook(filename, data_only=True)
@@ -243,7 +243,7 @@ class CuratedStandards(object):
         missing_gs_data = []
         for curated_standard in self.curated_standards:
             title = curated_standard[self.TITLE]
-            gs_title, num_citations, pub_date, errors = GoogleScholar.get_gs_results(title, mock=True)
+            gs_title, num_citations, pub_date, errors = GoogleScholar.get_gs_results(title)
             if num_citations is None or pub_date is None or errors:
                 missing_gs_data.append((title, errors))
             else:
@@ -367,7 +367,7 @@ The hand-curated tables and source code for this analysis are available at \cite
         table = [TABLE_START]
         if columns_to_drop:
             column_alignments = drop_columns(column_alignments, columns_to_drop)
-        table.append('{ |' + '|'.join(column_alignments) + '| } \n')
+        table.append('{ |' + '|'.join(column_alignments) + '| }\n')
         table.append(f"\\caption{{{CAPTION}}}\\\\\n")
         if columns_to_drop:
             columns = drop_columns(columns, columns_to_drop)

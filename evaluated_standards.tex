@@ -1,47 +1,50 @@
 
-\begin{longtable}{ |m{2.2cm}|m{5cm}|m{1.2cm}|m{1cm}|m{1.2cm}|m{1cm}| } 
+\begin{longtable}{ |L{2.2cm}|L{5cm}|L{1.2cm}|L{1cm}|R{1.2cm}|R{1cm}| } 
 \caption{Standards and tools ordered by estimated influence.
 The standards and tools recommended in this paper are arranged by the annual citation rate at Google Scholar for their
 primary publication.
 To provide a measure of influence focused on biomedical research PubMed citations per year are shown when available.
 The Type column categorizes each tool according to its overall purpose.\\
-These data were obtained by a reproducible analysis.
+\\
+Reproducible methods were used to obtain these data.
 Two hand-curated tables were input: a list of the standards and tools containing the titles of the primary publications, and a LaTeX bibliography containing the papers.
 Each paper's publication year and Google Scholar citation counts were obtained via a Google Scholar API.
 PubMed citation counts were obtained via the PubMed API \cite{sayers2010general}.
 These analyses can be reproduced by executing a single command.
-The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}.
-}\\\hline
+The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}.}\\
+% header for first page
+\hline
 \textbf{\scriptsize{Standard / tool}} &\textbf{\scriptsize{Type}} &\textbf{\scriptsize{Citation}} &\textbf{\scriptsize{Pub. year}} &\textbf{\scriptsize{PubMed cites / yr.}} &\textbf{\scriptsize{Scholar cites / yr.}}\\ 
 \hline
-\endfirsthead\hline
+\endfirsthead
+% same header for subsequent pages
+\hline
 \textbf{\scriptsize{Standard / tool}} &\textbf{\scriptsize{Type}} &\textbf{\scriptsize{Citation}} &\textbf{\scriptsize{Pub. year}} &\textbf{\scriptsize{PubMed cites / yr.}} &\textbf{\scriptsize{Scholar cites / yr.}}\\ 
 \hline
-\endhead\small{FAIR} &\small{Modeling process guidelines} &\cite{Wilkinson2016TheStewardship.} &\small{2016} &\small{139.6} &\small{575.9}\\
+\endhead
+\small{FAIR} &\small{Modeling process guidelines} &\cite{Wilkinson2016TheStewardship.} &\small{2016} &\small{139.6} &\small{577.5}\\
 \hline
-\small{SciPy optimize, ODE solver, etc.} &\small{Simulator} &\cite{virtanen2020scipy} &\small{2020} &\small{29.4} &\small{519.6}\\
+\small{SciPy optimize, ODE solver, etc.} &\small{Simulator} &\cite{virtanen2020scipy} &\small{2020} &\small{28.9} &\small{529.7}\\
 \hline
-\small{SBML2Prism} &\small{Validation tool} &\cite{Kwiatkowska2011PRISMSystems} &\small{2011} &\small{} &\small{208.1}\\
-\hline
-\small{SBML} &\small{Modeling language} &\cite{Hucka2003TheModels} &\small{2003} &\small{50.0} &\small{184.0}\\
+\small{SBML} &\small{Modeling language} &\cite{Hucka2003TheModels} &\small{2003} &\small{50.0} &\small{184.1}\\
 \hline
 \small{COPASI} &\small{Modeling application} &\cite{Hoops2006COPASI--aSImulator} &\small{2006} &\small{} &\small{149.4}\\
 \hline
 \small{NuSMV} &\small{Validation tool} &\cite{Cimatti2002NuSMVChecking} &\small{2002} &\small{} &\small{108.4}\\
 \hline
-\small{SBGN} &\small{Modeling visualization language} &\cite{Novere2009TheNotation} &\small{2009} &\small{} &\small{71.3}\\
+\small{SBGN} &\small{Modeling visualization language} &\cite{Novere2009TheNotation} &\small{2009} &\small{} &\small{71.4}\\
 \hline
-\small{COBRApy} &\small{Rule-based modeling language} &\cite{ebrahim2013cobrapy} &\small{2013} &\small{21.6} &\small{57.9}\\
+\small{COBRApy} &\small{Rule-based modeling language} &\cite{ebrahim2013cobrapy} &\small{2013} &\small{21.6} &\small{58.0}\\
 \hline
-\small{BioPAX} &\small{Biochemical data manager} &\cite{Demir2010TheSharing.} &\small{2010} &\small{24.9} &\small{56.6}\\
+\small{BioPAX} &\small{Biochemical data manager} &\cite{Demir2010TheSharing.} &\small{2010} &\small{24.9} &\small{56.5}\\
 \hline
 \small{BioModels} &\small{Model repository} &\cite{Li2010BioModelsModelsb} &\small{2010} &\small{17.5} &\small{52.4}\\
 \hline
 \small{Pathway Tools} &\small{Biochemical data manager} &\cite{karp2002pathway} &\small{2002} &\small{} &\small{39.6}\\
 \hline
-\small{InChI} &\small{Biochemical data standard} &\cite{Heller2015InChIIdentifier.} &\small{2015} &\small{15.6} &\small{38.1}\\
+\small{InChI} &\small{Biochemical data standard} &\cite{Heller2015InChIIdentifier.} &\small{2015} &\small{15.6} &\small{38.4}\\
 \hline
-\small{The ontology for biomedical investigations} &\small{Ontology} &\cite{Bandrowski2016TheInvestigations} &\small{2016} &\small{} &\small{32.3}\\
+\small{The ontology for biomedical investigations} &\small{Ontology} &\cite{Bandrowski2016TheInvestigations} &\small{2016} &\small{} &\small{32.5}\\
 \hline
 \small{SBO} &\small{Ontology} &\cite{Courtot2011ControlledBiology.} &\small{2011} &\small{} &\small{24.1}\\
 \hline
@@ -49,7 +52,7 @@ The hand-curated tables and source code for this analysis are available at \cite
 \hline
 \small{BioNetGen} &\small{Modeling language} &\cite{Harris2016BioNetGenModeling} &\small{2016} &\small{7.4} &\small{22.5}\\
 \hline
-\small{SED-ML} &\small{Simulation description language} &\cite{Waltemath2011ReproducibleLanguage} &\small{2011} &\small{8.3} &\small{20.6}\\
+\small{SED-ML} &\small{Simulation description language} &\cite{Waltemath2011ReproducibleLanguage} &\small{2011} &\small{8.3} &\small{20.7}\\
 \hline
 \small{JWS Online} &\small{Modeling application} &\cite{Olivier2004Web-basedOnline} &\small{2004} &\small{4.7} &\small{20.0}\\
 \hline
@@ -63,7 +66,7 @@ The hand-curated tables and source code for this analysis are available at \cite
 \hline
 \small{Memote} &\small{Validation tool} &\cite{Lieven2018Memote:Suite} &\small{2018} &\small{} &\small{12.1}\\
 \hline
-\small{PROV} &\small{Reproducibility standard} &\cite{Moreau2015ThePROV} &\small{2015} &\small{} &\small{12.1}\\
+\small{PROV} &\small{Reproducibility standard} &\cite{Moreau2015ThePROV} &\small{2015} &\small{} &\small{12.0}\\
 \hline
 \small{LoLA} &\small{Validation tool} &\cite{Schmidt2000LoLAAnalyser} &\small{2000} &\small{} &\small{11.9}\\
 \hline

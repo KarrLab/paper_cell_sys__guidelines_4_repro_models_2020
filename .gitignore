@@ -1,0 +1,8 @@
+# compiled files
+*.pyc
+
+# python cache
+__pycache__/
+
+# API keys
+keys.py
