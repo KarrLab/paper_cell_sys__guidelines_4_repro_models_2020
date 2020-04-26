@@ -1,4 +1,4 @@
-# Data and code used by the paper Veronica Porubsky, et al., *Ten best practices for making reproducible biochemical models*, Cell Systems, 2020
+# Data and code for Veronica Porubsky, et al., *Ten best practices for making reproducible biochemical models*, Cell Systems, 2020
 
 This Git repository contains data and code used in the paper Veronica Porubsky, Arthur Goldberg, Anand Rampadarath, David Nickerson, Jonathan Karr, and Herbert Sauro, Ten best practices for making reproducible biochemical models, Cell Systems, 2020.
 
