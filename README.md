@@ -4,7 +4,6 @@ This Git repository contains data and code used in the paper Veronica Porubsky, 
 
 [//]: # (Todo: add exact paper reference; check table number and name.)
 [//]: # (Todo: add exact paper reference.)
-[//]: # (Todo: spellcheck)
 
 
 ## Overview
@@ -21,18 +20,21 @@ Running this software requires the following prerequisites:
 
 ## Instructions
 
-Clone this repository:
+Clone this repository. At the command line, enter:
 
     git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git
 
-Create a `keys.py` file.
-Copy the API key provided by [SerpApi](https://serpapi.com/manage-api-key) and paste it into the value of `SERP_API_KEY` in the `keys.py` file.
+Create a file named `keys.py`.
+Copy the API key provided by [SerpApi](https://serpapi.com/manage-api-key) into the value of `SERP_API_KEY` in the `keys.py` file.
 
 Run this script to reproduce the table's data:
 
     reproduce_table_2.sh
 
 The table will be reproduced in two formats.
-A TeX version is provided in `evaluated_standards.tex`.
+A LaTeX version is provided in `evaluated_standards.tex`.
 A `tsv` version is provided in `evaluated_standards.tsv`.
 
+## Questions or feedback
+
+Contact [mailto](mailto:Arthur dot Goldberg@mssm.edu).
