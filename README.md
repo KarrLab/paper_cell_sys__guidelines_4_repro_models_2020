@@ -37,4 +37,4 @@ A `tsv` version is provided in `evaluated_standards.tsv`.
 
 ## Questions or feedback
 
-Contact [mailto](mailto:Arthur dot Goldberg@mssm.edu).
+Contact [Arthur Goldberg](mailto:Arthur_dot_Goldberg@mssm.edu).
