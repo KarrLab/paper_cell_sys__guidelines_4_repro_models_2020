@@ -10,6 +10,7 @@ from pprint import pprint
 from serpapi.google_scholar_search_results import GoogleScholarSearchResults
 import ast
 import bibtexparser
+import collections
 import datetime
 import keys
 import re
@@ -18,9 +19,11 @@ import sys
 import time
 import urllib.parse
 import xml.etree.ElementTree as ET
+import collections
 
 BIBLIOGRAPHY = 'paper_cell_sys__guidelines_4_repro_models_2020.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
+SURVEY_RESPONSES_FILE = 'paper_2018_curr_opin_sys_biol/survey_responses-edited2.xlsx'
 OUTPUT_LATEX_TABLE_FILE = 'evaluated_standards.tex'
 TOOL_EMAIL = 'tool=mssm_citation_research&email=Arthur.Goldberg%40mssm.edu'
 EUTILS = 'eutils.ncbi.nlm.nih.gov/entrez/eutils'
@@ -154,18 +157,22 @@ class CuratedStandards(object):
     PM_ID = 'PM_id'
     PM_CITATIONS = 'PM_citations'
     GS_CITATIONS = 'GS_citations'
+    SURVEY_ADOPTION_RATE = 'survey_adoption_rate'
 
     def __init__(self, filename, biblio):
         self.filename = filename
         self.biblio = biblio
-        self.curated_standards = self.read_curated_standards(filename)
+        self.curated_standards = self.spreadsheet_into_dicts(filename)
 
-    def read_curated_standards(self, filename):
+    @staticmethod
+    def spreadsheet_into_dicts(filename):
+        """ Read first worksheet in an Excel workbook with column headers into a list of dictionaries
+        """
         workbook = load_workbook(filename, data_only=True)
-        curated_standards_ws = workbook.active
-        field_names = [col_name_cell.value for col_name_cell in curated_standards_ws[1]]
+        worksheet = workbook.active
+        field_names = [col_name_cell.value for col_name_cell in worksheet[1]]
         records = []
-        for row in curated_standards_ws.iter_rows(min_row=2):
+        for row in worksheet.iter_rows(min_row=2):
             new_record = {}
             for field_name, cell in zip(field_names, row):
                 new_record[field_name] = cell.value
@@ -255,6 +262,37 @@ class CuratedStandards(object):
         else:
             print('All references found on Google Scholar.')
 
+    def enrich_with_survey_data(self):
+        survey = collections.defaultdict(list)
+        for response in self.spreadsheet_into_dicts(SURVEY_RESPONSES_FILE):
+            for col_name, value in response.items():
+                survey[col_name].append(value)
+        questions = \
+            ['If you use models in your research, which tools do you most frequently use to build and/or simulate models?',
+             'If you use models in your research, which resources do you most frequently use to distribute models?',
+             'If you use models in your research, which languages do you most frequently use to represent models?']
+        adoption = {}
+        # number of subjects answering each question
+        num_answers = collections.defaultdict(int)
+        for question in questions:
+            adoption[question] = collections.defaultdict(int)
+            for responses in survey[question]:
+                if responses:
+                    num_answers[question] += 1
+                    for tool in responses.split(';'):
+                        # adoption is the number of uses of each tool, by question
+                        adoption[question][tool] += 1
+        fractional_adoption = {}
+        for question in adoption:
+            for tool, count in adoption[question].items():
+                # some tools are responses to multiple questions; take the largest fractional adoption
+                fractional_adoption[tool] = max(count/num_answers[question],
+                                                fractional_adoption.get(tool, 0))
+        for curated_standard in self.curated_standards:
+            if curated_standard[self.STANDARD] in fractional_adoption:
+                curated_standard[self.SURVEY_ADOPTION_RATE] = fractional_adoption[curated_standard[self.STANDARD]]
+        print('Survey data incorporated.')
+
     @staticmethod
     def year_fraction(date):
         # from https://stackoverflow.com/a/36949905
@@ -274,31 +312,28 @@ class CuratedStandards(object):
         # columns: standard, type, title with reference, year published, PM citations / year, GS citations / year
         # columns_to_drop contains true values for columns to remove from the table
         columns = (self.STANDARD,
-                   self.TYPE,
-                   'Citation',
-                   'Pub. year',
-                   'PubMed cites / yr.',
-                   'Scholar cites / yr.')
-        column_alignments = ('l',
-                             'l',
-                             'l',
-                             'c',
-                             'c',
-                             'c')
+                   'Type of standard / tool',
+                   'Most cited paper',
+                   'Paper year',
+                   'PubMed (cites / yr)',
+                   'Scholar (cites / yr)',
+                   'Use in survey (%)')
 
         # these definitions required in Latex preamble
         # see: https://tex.stackexchange.com/a/119561
         # \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
         # \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
         column_alignments = ('L{2.2cm}',
-                             'L{5cm}',
-                             'L{1.2cm}',
+                             'L{4cm}',
                              'L{1cm}',
-                             'R{1.2cm}',
+                             'L{0.8cm}',
+                             'R{1.1cm}',
+                             'R{1cm}',
                              'R{1cm}')
         small_columns = (1,
                          1,
                          0,
+                         1,
                          1,
                          1,
                          1)
@@ -310,7 +345,6 @@ class CuratedStandards(object):
             row = [''] * n_columns
             row[0] = curated_standard[self.STANDARD]
             row[1] = curated_standard[self.TYPE]
-            # row[2] = f"\\tiny{{{curated_standard[self.TITLE]}}}\cite{{{curated_standard[self.BIB_KEY]}}}"
             row[2] = f"\cite{{{curated_standard[self.BIB_KEY]}}}"
 
             if self.PUB_YEAR in curated_standard:
@@ -331,6 +365,10 @@ class CuratedStandards(object):
 
                     GS_cites_per_year = curated_standard[self.GS_CITATIONS] / age
                     row[5] = f"{GS_cites_per_year:.1f}"
+
+                if self.SURVEY_ADOPTION_RATE in curated_standard:
+                    pct_adoption = curated_standard[self.SURVEY_ADOPTION_RATE] * 100.
+                    row[6] = f"{pct_adoption:.1f}"
 
             rows.append(row)
 
@@ -395,18 +433,6 @@ The hand-curated tables and source code for this analysis are available at \cite
             table.append(HLINE)
         table.append(TABLE_END)
         complete_table = ''.join(table)
-        # todo to finish
-        # include in paper
-        # improve formatting:
-        #   fixed width numbers
-        #   right align numbers
-        #   no spacing between lines in header row
-        #
-        # script to do pip installs and run
-        # remove API key from code
-        # provide instructions on using serpapi.google_scholar_search_results
-        # label release used for paper
-        # incorporate column of data from survey, reproducibily from spreadsheet
         return complete_table
 
     def output_latex_table(self, filename=OUTPUT_LATEX_TABLE_FILE, columns_to_drop=None):
@@ -414,13 +440,20 @@ The hand-curated tables and source code for this analysis are available at \cite
             latex_table.write(self.generate_latex_table(columns_to_drop=columns_to_drop))
 
 
+def prepare():
+    # git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git
+    # test that keys.py exists and contains SERP_API_KEY
+    pass
+
+
 def main():
     biblio = Biblio(BIBLIOGRAPHY)
     curated_standards = CuratedStandards(CURATED_STANDARDS_FILE, biblio)
     curated_standards.check_all_titles()
+    curated_standards.enrich_with_bib_key()
+    curated_standards.enrich_with_survey_data()
     curated_standards.enrich_with_gs_data()
     curated_standards.enrich_with_pm_ids()
-    curated_standards.enrich_with_bib_key()
     curated_standards.enrich_with_num_pm_citations()
     curated_standards.output_latex_table()
 
