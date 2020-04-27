@@ -1,0 +1,46 @@
+Standard / tool	Type of standard / tool	Most cited paper	Paper year	PubMed (cites / yr)	Scholar (cites / yr)	Use in survey (\%)
+FAIR	Modeling process guidelines	\cite{Wilkinson2016TheStewardship.}	2016	140.3	576.4	
+SciPy optimize, ODE solver, etc.	Simulator	\cite{virtanen2020scipy}	2020	31.3	516.2	
+SBML	Modeling language	\cite{Hucka2003TheModels}	2003	50.0	184.0	69.5
+COPASI	Modeling application	\cite{Hoops2006COPASI--aSImulator}	2006		149.3	31.7
+NuSMV	Validation tool	\cite{Cimatti2002NuSMVChecking}	2002		108.4	
+SBGN	Modeling visualization language	\cite{Novere2009TheNotation}	2009		71.4	2.4
+COBRApy	Simulator	\cite{ebrahim2013cobrapy}	2013	21.7	57.9	11.3
+BioPAX	Biochemical data manager	\cite{Demir2010TheSharing.}	2010	24.9	56.5	
+BioModels	Model repository	\cite{Li2010BioModelsModelsb}	2010	17.4	52.3	33.3
+Pathway Tools	Biochemical data manager	\cite{karp2002pathway}	2002		39.6	
+InChI	Biochemical data standard	\cite{Heller2015InChIIdentifier.}	2015	15.6	38.3	
+The ontology for biomedical investigations	Ontology	\cite{Bandrowski2016TheInvestigations}	2016		32.4	
+SBO	Ontology	\cite{Courtot2011ControlledBiology.}	2011		24.0	
+Data2Dynamics	Parameter estimation tool	\cite{Raue2015Data2Dynamics:Systems}	2015	7.7	22.7	1.1
+BioNetGen	Modeling language	\cite{Harris2016BioNetGenModeling}	2016	7.6	22.5	8.5
+SED-ML	Simulation description language	\cite{Waltemath2011ReproducibleLanguage}	2011	8.3	20.7	
+JWS Online	Modeling application	\cite{Olivier2004Web-basedOnline}	2004	4.7	20.0	5.4
+PySB	Modeling language	\cite{Lopez2013ProgrammingPySB}	2013	6.4	19.8	6.5
+CellML	Modeling language	\cite{Cuellar2003AnLanguage}	2003		18.2	7.3
+VCell	Modeling application	\cite{moraru2008virtual}	2008	6.0	17.8	2.7
+MIASE	Modeling process guidelines	\cite{Waltemath2011MinimumMIASE}	2011	3.3	12.3	
+Memote	Validation tool	\cite{Lieven2018Memote:Suite}	2018		12.1	
+PROV	Reproducibility standard	\cite{Moreau2015ThePROV}	2015		12.0	
+LoLA	Validation tool	\cite{Schmidt2000LoLAAnalyser}	2000		11.9	
+libRoadRunner	Simulator	\cite{Somogyi2015LibRoadRunner:Library.}	2015	4.7	10.9	5.4
+SESSL	Simulation description language	\cite{Ewald2014SESSL:Experiments}	2014	0.0	10.8	
+SEEK	Model repository	\cite{Wolstencroft2015SEEK:Platform}	2015	3.2	10.7	3.8
+BioLab	Validation tool	\cite{Clarke2008StatisticalPathway}	2008		10.0	
+COMBINE	Biochemical data format	\cite{Bergmann2014COMBINEProject}	2014	3.6	9.7	
+RightField	Model data annotation tool	\cite{Wolstencroft2011RightField:Spreadsheets}	2011	2.5	8.6	
+FAIRDOMHub	Model repository	\cite{Wolstencroft2017FAIRDOMHub:Research.}	2017	3.0	8.4	
+PyDREAM	Parameter estimation tool	\cite{Shockley2018PyDREAM:Python}	2018	2.6	8.2	
+MIRIAM	Modeling process guidelines	\cite{Laibe2007MIRIAMBiology.}	2007	3.1	8.0	
+SBML-PET	Parameter estimation tool	\cite{Zi2006SBML-PET:Tool}	2006	1.7	7.1	
+StochSS	Simulator	\cite{drawert2016stochastic}	2016	2.8	6.9	
+Tellurium	Modeling language	\cite{Choi2018Tellurium:Biology}	2018	2.2	6.9	4.8
+Antimony	Modeling language	\cite{Smith2009Antimony:Language}	2009	2.7	6.4	
+SBRML	Model data annotation tool	\cite{Dada2010SBRML:Models}	2010	1.7	6.2	
+SBtab	Biochemical data format	\cite{Lubitz2016SBtab:Biology}	2016	1.9	4.9	
+PyBioNetFit	Validation tool	\cite{Mitra2019PyBioNetFitLanguage}	2019	1.5	4.5	
+HDF	Data format	\cite{Brown1993SoftwareManagement}	1993		2.5	
+SciUnit	Validation tool	\cite{Omar2014CollaborativeValidation}	2014		2.4	
+SEPIO	Ontology	\cite{Brush2016SEPIO:Evidence}	2016		1.9	
+KiSAO	Ontology	\cite{Zhukova2011KineticOntology}	2007		1.1	
+BpForms and BcForms	Biochemical data format	\cite{Lang2019BpForms:Proteins}	2019		0.8	

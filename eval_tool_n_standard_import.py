@@ -11,9 +11,8 @@ from serpapi.google_scholar_search_results import GoogleScholarSearchResults
 import ast
 import bibtexparser
 import collections
-import collections
+import csv
 import datetime
-import keys
 import re
 import requests
 import subprocess
@@ -25,8 +24,9 @@ import xml.etree.ElementTree as ET
 
 BIBLIOGRAPHY = 'paper_cell_sys__guidelines_4_repro_models_2020.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
-SURVEY_RESPONSES_FILE = 'paper_2018_curr_opin_sys_biol/survey_responses-edited2.xlsx'
+SURVEY_RESPONSES_FILE = 'paper_2018_curr_opin_sys_biol/survey_responses-edited.xlsx'
 OUTPUT_LATEX_TABLE_FILE = 'evaluated_standards.tex'
+EVALUATED_STANDARDS_FILE = 'evaluated_standards.tsv'
 TOOL_EMAIL = 'tool=mssm_citation_research&email=Arthur.Goldberg%40mssm.edu'
 EUTILS = 'eutils.ncbi.nlm.nih.gov/entrez/eutils'
 NCBI_ELINK_TEMPLATE = (f"https://{EUTILS}/elink.fcgi?dbfrom=pubmed&linkname=pubmed_pmc_ref"
@@ -37,21 +37,30 @@ ESUMMARY_TEMPLATE = f"https://{EUTILS}/esummary.fcgi?db=pubmed&id={{}}&retmode=j
 
 class GoogleScholar(object):
 
-    # To use SerpApi, create an account, get your private API key, create a keys.py file on the Python PATH, assign
-    #   SERP_API_KEY = 'your private API key'
-    # in keys.py. Keep keys.py secure.
-    SERP_API_KEY = keys.SERP_API_KEY
+    def __init__(self):
+        # To use SerpApi, create an account, get your private API key, create a keys.py file on the Python PATH, assign
+        #   SERP_API_KEY = 'your private API key'
+        # in keys.py. Keep keys.py secure.
+        import keys
+        self.SERP_API_KEY = keys.SERP_API_KEY
 
-    @staticmethod
-    def get_gs_results(title, mock=False):
-        # get num citations, publication year, and title from GS
+    def get_gs_results(self, title, mock=False):
+        """ Get num citations, publication year, and title from GS
+
+        Args:
+            title (:obj:`str`): paper title
+            mock (:obj:`bool`): whether to return mock results
+
+        Returns:
+            :obj:`tuple`: Google Scholar title, number citations, publication year, errors
+        """
         if mock:
             # test version of get_gs_results, which avoids using billable searches
             return '', len(title), 2000 + len(title)/10, []
 
         errors = []
         pub_year = None
-        client = GoogleScholarSearchResults({"q": title, "serp_api_key": GoogleScholar.SERP_API_KEY})
+        client = GoogleScholarSearchResults({"q": title, "serp_api_key": self.SERP_API_KEY})
         data = client.get_json()
         summary = data['organic_results'][0]['publication_info']['summary']
         PUB_YEAR_RE = '(\d\d\d\d)'
@@ -69,24 +78,40 @@ class NCBIUtils(object):
 
     SLEEP_TIME = 2.0
     NCBI_API_KEY = None
-    # see https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
-    if hasattr(keys, 'NCBI_API_KEY'):
-        NCBI_API_KEY = keys.NCBI_API_KEY
-        SLEEP_TIME = 0.1
 
-    @staticmethod
-    def add_key(url):
-        if NCBIUtils.NCBI_API_KEY:
-            return url + f'&api_key={NCBIUtils.NCBI_API_KEY}'
+    def __init__(self):
+        # see https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
+        import keys
+        if hasattr(keys, 'NCBI_API_KEY'):
+            self.NCBI_API_KEY = keys.NCBI_API_KEY
+            self.SLEEP_TIME = 0.15
+
+    def add_key(self, url):
+        """ Add NCBI_API_KEY key to url, if it's known
+
+        Args:
+            url (:obj:`str`): url
+
+        Returns:
+            :obj:`str`: a URL, with NCBI_API_KEY query string entry, if it's known
+        """
+        if self.NCBI_API_KEY:
+            return url + f'&api_key={self.NCBI_API_KEY}'
         return url
 
-    @staticmethod
-    def get_pm_id(title):
-        """ Get PubMed ID for a title from the PutMed service, if possible """
+    def get_pm_id(self, title):
+        """ Get PubMed ID for a title from the PutMed service, if possible
+
+        Args:
+            title (:obj:`str`): paper title
+
+        Returns:
+            :obj:`tuple`: the PubMed ID for title, errors if any
+        """
         url = NCBI_ESEARCH_TEMPLATE.format(urllib.parse.quote(title))
-        url = NCBIUtils.add_key(url)
+        url = self.add_key(url)
         errors = []
-        time.sleep(NCBIUtils.SLEEP_TIME)
+        time.sleep(self.SLEEP_TIME)
         response = requests.get(url)
         if response.status_code != requests.codes.ok:
             errors.append(f"NCBI_ESEARCH_TEMPLATE request error {response.status_code} for title '{title}'")
@@ -99,7 +124,7 @@ class NCBIUtils(object):
             return pm_ids[0], None
         elif 1 < len(pm_ids):
             for pm_id in pm_ids:
-                _, pm_title, errors = NCBIUtils.get_pub_metadata(pm_id)
+                _, pm_title, errors = self.get_pub_metadata(pm_id)
                 if errors:
                     return None, errors
                 # ignore case in match
@@ -107,35 +132,58 @@ class NCBIUtils(object):
                     return pm_id, None
             return None, None
 
-    @staticmethod
-    def get_num_citations(pm_id):
+    def get_num_citations(self, pm_id):
+        """ Get PubMed citations for PubMed ID
+
+        Args:
+            pm_id (:obj:`str`): PubMed ID
+
+        Returns:
+            :obj:`tuple`: PubMed citations, errors if any
+        """
         url = NCBI_ELINK_TEMPLATE.format(pm_id)
-        url = NCBIUtils.add_key(url)
+        url = self.add_key(url)
         errors = []
-        time.sleep(NCBIUtils.SLEEP_TIME)
+        time.sleep(self.SLEEP_TIME)
         response = requests.get(url)
         if response.status_code != requests.codes.ok:
             errors.append(f"request error {response.status_code} for pmc_id {pmc_id}")
             return None, errors
-        return NCBIUtils.get_num_citations_from_xml(response.text), None
+        return self.get_num_citations_from_xml(response.text), None
 
     @staticmethod
     def get_num_citations_from_xml(xml_string):
+        """ Get number PubMed citations
+
+        Args:
+            xml_string (:obj:`str`): xml_string
+
+        Returns:
+            :obj:`int`: num PubMed citations
+        """
         root = ET.fromstring(xml_string)
         num_citations = len(list(root.iter('Id'))) - 1
         return num_citations
 
-    @staticmethod
-    def get_pub_metadata(pm_id):
-        # get publication year
+    def get_pub_metadata(self, pm_id):
+        """ Get PubMed metadata
+
+        Args:
+            pm_id (:obj:`str`): PubMed ID
+
+        Returns:
+            :obj:`tuple`: publication year, title, errors if any
+        """
         url = ESUMMARY_TEMPLATE.format(pm_id)
+        url = self.add_key(url)
         errors = []
-        time.sleep(NCBIUtils.SLEEP_TIME)
+        time.sleep(self.SLEEP_TIME)
         response = requests.get(url)
         if response.status_code != requests.codes.ok:
             errors.append(f"request error {response.status_code} for pm_id {pm_id}")
             return (None, errors)
         resp_dict = dict(ast.literal_eval(response.text))
+        # get publication year
         pubdate = resp_dict["result"][str(pm_id)]["pubdate"]
         PUB_YEAR_RE = "(\d+)"
         match = re.search(PUB_YEAR_RE, pubdate)
@@ -155,7 +203,14 @@ class Biblio(object):
             self.bib_database = bibtexparser.load(bibtex_file)
 
     def get_entry_key(self, title):
-        """ Get the bibliography key for a title """
+        """ Get the bibliography key for a title
+
+        Args:
+            title (:obj:`str`): title
+
+        Returns:
+            :obj:`str`: the bibliography key
+        """
         for citation in self.bib_database.entries:
             if citation['title'] == title:
                 return citation['ID']
@@ -174,6 +229,15 @@ class CuratedStandards(object):
     GS_CITATIONS = 'GS_citations'
     SURVEY_ADOPTION_RATE = 'survey_adoption_rate'
 
+    # columns: standard, type, title with reference, year published, PM citations / year, GS citations / year
+    columns = (STANDARD,
+               'Type of standard / tool',
+               'Most cited paper',
+               'Paper year',
+               'PubMed (cites / yr)',
+               'Scholar (cites / yr)',
+               r'Use in survey (\%)')
+
     def __init__(self, filename, biblio):
         self.filename = filename
         self.biblio = biblio
@@ -182,6 +246,12 @@ class CuratedStandards(object):
     @staticmethod
     def spreadsheet_into_dicts(filename):
         """ Read first worksheet in an Excel workbook with column headers into a list of dictionaries
+
+        Args:
+            filename (:obj:`str`): filename
+
+        Returns:
+            :obj:`list` of :obj:`dict`: data, in a list of rows, with a header-keyed dict for each row
         """
         workbook = load_workbook(filename, data_only=True)
         worksheet = workbook.active
@@ -195,6 +265,8 @@ class CuratedStandards(object):
         return records
 
     def check_all_titles(self):
+        """ Ensure that all titles are in the bibliography
+        """
         titles = self.read_curated_standards_column(self.TITLE)
         missing = set()
         for title in titles:
@@ -206,6 +278,14 @@ class CuratedStandards(object):
             print(f"All {len(titles)} title(s) found in '{self.biblio.filename}'.")
 
     def read_curated_standards_column(self, col_name):
+        """ Get all curated standards data in the given column
+
+        Args:
+            col_name (:obj:`str`): col_name
+
+        Returns:
+            :obj:`list`: all curated standards data in the given column
+        """
         entries = []
         for curated_standard in self.curated_standards:
             if col_name in curated_standard:
@@ -213,10 +293,12 @@ class CuratedStandards(object):
         return entries
 
     def enrich_with_pm_ids(self):
+        """ Enrich the curated standards with PubMed IDs
+        """
         missing_ids = []
         for curated_standard in self.curated_standards:
             title = curated_standard[self.TITLE]
-            pm_id, errors = NCBIUtils.get_pm_id(curated_standard[self.TITLE])
+            pm_id, errors = NCBIUtils().get_pm_id(curated_standard[self.TITLE])
             if pm_id is not None:
                 curated_standard[self.PM_ID] = pm_id
             elif errors is None:
@@ -230,11 +312,13 @@ class CuratedStandards(object):
             print('All references have PM ids.')
 
     def enrich_with_num_pm_citations(self):
+        """ Enrich the curated standards with the number of PubMed citations
+        """
         missing_pm_cites = []
         for curated_standard in self.curated_standards:
             if self.PM_ID in curated_standard:
                 pm_id = curated_standard[self.PM_ID]
-                num_citations, errors = NCBIUtils.get_num_citations(pm_id)
+                num_citations, errors = NCBIUtils().get_num_citations(pm_id)
                 if num_citations is not None:
                     curated_standard[self.PM_CITATIONS] = num_citations
                 else:
@@ -247,6 +331,8 @@ class CuratedStandards(object):
             print('All references with PM ids have PM citations.')
 
     def enrich_with_bib_key(self):
+        """ Enrich the curated standards with bibliographic keys from the .bib file
+        """
         missing_bib_keys = []
         for curated_standard in self.curated_standards:
             title = curated_standard[self.TITLE]
@@ -262,10 +348,12 @@ class CuratedStandards(object):
             print('All references have bibliography keys.')
 
     def enrich_with_gs_data(self):
+        """ Enrich the curated standards with number of citations and publication year from Google Scholar
+        """
         missing_gs_data = []
         for curated_standard in self.curated_standards:
             title = curated_standard[self.TITLE]
-            gs_title, num_citations, pub_date, errors = GoogleScholar.get_gs_results(title)
+            gs_title, num_citations, pub_date, errors = GoogleScholar().get_gs_results(title)
             if num_citations is None or pub_date is None or errors:
                 missing_gs_data.append((title, errors))
             else:
@@ -278,6 +366,8 @@ class CuratedStandards(object):
             print('All references found on Google Scholar.')
 
     def enrich_with_survey_data(self):
+        """ Enrich the curated standards with survey data
+        """
         survey = collections.defaultdict(list)
         for response in self.spreadsheet_into_dicts(SURVEY_RESPONSES_FILE):
             for col_name, value in response.items():
@@ -310,55 +400,37 @@ class CuratedStandards(object):
 
     @staticmethod
     def year_fraction(date):
-        # from https://stackoverflow.com/a/36949905
+        """ Convert date into fractional year
+
+        From https://stackoverflow.com/a/36949905
+
+        Args:
+            date (:obj:`datetime`): date
+
+        Returns:
+            :obj:`float`: date as number of years including a fractional portion
+        """
         start = datetime.date(date.year, 1, 1).toordinal()
         year_length = datetime.date(date.year+1, 1, 1).toordinal() - start
         return date.year + float(date.toordinal() - start) / year_length
 
-    @staticmethod
-    def drop_columns(row, cols_to_drop):
-        new_row = []
-        for entry, drop in zip(row, cols_to_drop):
-            if not drop:
-                new_row.append(entry)
-        return new_row
+    def write_evaluated_standards_file(self):
+        """ Write the enriched, curated standards as a tsv file
+        """
+        evaluated_standards = self.generate_data_table()
+        with open(EVALUATED_STANDARDS_FILE, 'w', newline='') as csvfile:
+            evaluated_standards_writer = csv.writer(csvfile, delimiter='\t')
+            evaluated_standards_writer.writerow(self.columns)
+            for row in evaluated_standards:
+                evaluated_standards_writer.writerow(row)
 
-    LATEX_PACKAGES_AND_COMMANDS = r"""
-% packages & commands used by "Standards and tools ordered by estimated influence" table
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{import}
-% see: https://tex.stackexchange.com/a/119561
-\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
-\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-"""
-    def generate_latex_table(self, columns_to_drop=None):
-        # columns: standard, type, title with reference, year published, PM citations / year, GS citations / year
-        # columns_to_drop contains true values for columns to remove from the table
-        columns = (self.STANDARD,
-                   'Type of standard / tool',
-                   'Most cited paper',
-                   'Paper year',
-                   'PubMed (cites / yr)',
-                   'Scholar (cites / yr)',
-                   r'Use in survey (\%)')
+    def generate_data_table(self):
+        """ Convert the enriched, curated standards into a list of rows
 
-        column_alignments = ('L{2.2cm}',
-                             'L{4cm}',
-                             'L{1cm}',
-                             'L{0.8cm}',
-                             'R{1.1cm}',
-                             'R{1cm}',
-                             'R{1cm}')
-        small_columns = (1,
-                         1,
-                         0,
-                         1,
-                         1,
-                         1,
-                         1)
-        n_columns = len(columns)
+        Returns:
+            :obj:`list` of :obj:`list`: the curated standards data, in a list of rows
+        """
+        n_columns = len(self.columns)
         current_year = self.year_fraction(datetime.datetime.today())
         rows = []
         for curated_standard in self.curated_standards:
@@ -395,6 +467,40 @@ class CuratedStandards(object):
 
         # sort rows by decreasing Google Scholar citations
         rows.sort(key=lambda curated_std: float(curated_std[5]), reverse=True)
+        return rows
+
+    LATEX_PACKAGES_AND_COMMANDS = r"""
+% packages & commands used by "Standards and tools ordered by estimated influence" table
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{import}
+% see: https://tex.stackexchange.com/a/119561
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+"""
+    def generate_latex_table(self):
+        """ Convert the enriched, curated standards into a LaTeX table
+
+        Returns:
+            :obj:`str`: the LaTeX table
+        """
+        column_alignments = ('L{2.2cm}',
+                             'L{4cm}',
+                             'L{1cm}',
+                             'L{0.8cm}',
+                             'R{1.1cm}',
+                             'R{1cm}',
+                             'R{1cm}')
+        small_columns = (1,
+                         1,
+                         0,
+                         1,
+                         1,
+                         1,
+                         1)
+        n_columns = len(self.columns)
+        rows = self.generate_data_table()
 
         tmp_rows = []
         for row in rows:
@@ -427,13 +533,9 @@ The hand-curated tables and source code for this analysis are available at \cite
         TABLE_START = '\n' + r'\begin{longtable}'
         TABLE_END = r'\bottomrule\end{longtable}' + '\n'
         table = [TABLE_START]
-        if columns_to_drop:
-            column_alignments = drop_columns(column_alignments, columns_to_drop)
         table.append('{' + ''.join(column_alignments) + '}\n')
         table.append(fr"\caption{{{CAPTION}}}\\" + '\n')
-        if columns_to_drop:
-            columns = drop_columns(columns, columns_to_drop)
-        small_columns = [fr"\scriptsize{{{col}}}" for col in columns]
+        small_columns = [fr"\scriptsize{{{col}}}" for col in self.columns]
 
         header = []
         header.append(TOPRULE)
@@ -450,8 +552,6 @@ The hand-curated tables and source code for this analysis are available at \cite
         table.append(r'\endhead' + '\n')
 
         for row in rows:
-            if columns_to_drop:
-                row = drop_columns(row, columns_to_drop)
             table.append(MIDRULE)
             table.append(' &'.join(row))
             table.append(END_OF_LINE)
@@ -460,21 +560,38 @@ The hand-curated tables and source code for this analysis are available at \cite
         complete_table = ''.join(table)
         return complete_table
 
-    def output_latex_table(self, filename=OUTPUT_LATEX_TABLE_FILE, columns_to_drop=None):
+    def output_latex_table(self, filename=OUTPUT_LATEX_TABLE_FILE):
         with open(filename, 'w') as latex_table:
-            latex_table.write(self.generate_latex_table(columns_to_drop=columns_to_drop))
+            latex_table.write(self.generate_latex_table())
 
 
 def prepare():
-    # git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git
-    result = subprocess.run(['git', 'clone', 'https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git'],
-                            stdout=subprocess.PIPE)
-    if "Cloning into 'paper_2018_curr_opin_sys_biol'" not in result.output:
-        pass
+    """ Prepare to create the table: install Python packages; get the survey data; check the keys module
+    """
+    cmd = 'pip install -r requirements.txt'
+    result = subprocess.run(cmd.split(), stdout=subprocess.PIPE)
+    if "Requirement" not in str(result.stdout):
+        raise ValueError(f"Error: '{cmd}' failed)")
+
+    cmd = 'git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git'
+    result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if "Cloning into 'paper_2018_curr_opin_sys_biol'" not in str(result.stderr):
+        raise ValueError(f"Error: '{cmd}' failed)")
+
     # test that keys.py exists and contains SERP_API_KEY
+    msg = "Error: SERP_API_KEY variable must be defined in keys.py"
+    try:
+        import keys
+        if not hasattr(keys, 'SERP_API_KEY'):
+            raise ValueError(msg)
+    except Exception:
+        raise ValueError(msg)
+    print('Prepare complete.')
 
 
 def main():
+    """ Create the evaluated standards files
+    """
     biblio = Biblio(BIBLIOGRAPHY)
     curated_standards = CuratedStandards(CURATED_STANDARDS_FILE, biblio)
     curated_standards.check_all_titles()
@@ -483,7 +600,9 @@ def main():
     curated_standards.enrich_with_gs_data()
     curated_standards.enrich_with_pm_ids()
     curated_standards.enrich_with_num_pm_citations()
+    curated_standards.write_evaluated_standards_file()
     curated_standards.output_latex_table()
 
 if __name__ == '__main__':
+    prepare()
     main()
