@@ -25,7 +25,8 @@ Running this software requires the following prerequisites:
 Clone this repository.
 
 Change directory to `paper_cell_sys__guidelines_4_repro_models_2020`.
-Create a file named `keys.py`.
+Create a file named `keys.py`. Keep `keys.py` secure.
+
 Define a variable called `SERP_API_KEY` in `keys.py` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
 Optionally, create an NCBI API key, and define a variable called `NCBI_API_KEY` in the `keys.py` file equal to it.
 
