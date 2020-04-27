@@ -11,15 +11,17 @@ from serpapi.google_scholar_search_results import GoogleScholarSearchResults
 import ast
 import bibtexparser
 import collections
+import collections
 import datetime
 import keys
 import re
 import requests
+import subprocess
 import sys
 import time
 import urllib.parse
 import xml.etree.ElementTree as ET
-import collections
+
 
 BIBLIOGRAPHY = 'paper_cell_sys__guidelines_4_repro_models_2020.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
@@ -308,6 +310,16 @@ class CuratedStandards(object):
                 new_row.append(entry)
         return new_row
 
+    LATEX_PACKAGES_AND_COMMANDS = r"""
+% packages & commands used by "Standards and tools ordered by estimated influence" table
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{import}
+% see: https://tex.stackexchange.com/a/119561
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+"""
     def generate_latex_table(self, columns_to_drop=None):
         # columns: standard, type, title with reference, year published, PM citations / year, GS citations / year
         # columns_to_drop contains true values for columns to remove from the table
@@ -317,12 +329,8 @@ class CuratedStandards(object):
                    'Paper year',
                    'PubMed (cites / yr)',
                    'Scholar (cites / yr)',
-                   'Use in survey (%)')
+                   r'Use in survey (\%)')
 
-        # these definitions required in Latex preamble
-        # see: https://tex.stackexchange.com/a/119561
-        # \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
-        # \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
         column_alignments = ('L{2.2cm}',
                              'L{4cm}',
                              'L{1cm}',
@@ -345,7 +353,7 @@ class CuratedStandards(object):
             row = [''] * n_columns
             row[0] = curated_standard[self.STANDARD]
             row[1] = curated_standard[self.TYPE]
-            row[2] = f"\cite{{{curated_standard[self.BIB_KEY]}}}"
+            row[2] = fr"\cite{{{curated_standard[self.BIB_KEY]}}}"
 
             if self.PUB_YEAR in curated_standard:
                 row[3] = str(curated_standard[self.PUB_YEAR])
@@ -380,17 +388,17 @@ class CuratedStandards(object):
             sized_row = []
             for shrink, entry in zip(small_columns, row):
                 if shrink:
-                    entry = f"\\small{{{entry}}}"
+                    entry = fr"\small{{{entry}}}"
                 sized_row.append(entry)
             tmp_rows.append(sized_row)
         rows = tmp_rows
 
-        CAPTION = """Standards and tools ordered by estimated influence.
-The standards and tools recommended in this paper are arranged by the annual citation rate at Google Scholar for their
-primary publication.
+        CAPTION = r"""Standards and tools ordered by estimated influence.
+The standards and tools recommended in this paper are ordered by their annual citation rates for their
+primary publications, as measured by Google Scholar.
 To provide a measure of influence focused on biomedical research PubMed citations per year are shown when available.
-The Type column categorizes each tool according to its overall purpose.\\\\
-\\\\
+The Type column categorizes each tool by its overall purpose.\\
+\\
 Reproducible methods were used to obtain these data.
 Two hand-curated tables were input: a list of the standards and tools containing the titles of the primary publications, and a LaTeX bibliography containing the papers.
 Each paper's publication year and Google Scholar citation counts were obtained via a Google Scholar API.
@@ -398,39 +406,43 @@ PubMed citation counts were obtained via the PubMed API \cite{sayers2010general}
 These analyses can be reproduced by executing a single command.
 The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}."""
 
-        END_OF_LINE = '\\\\\n'
-        HLINE = '\\hline\n'
-        TABLE_START = '\n\\begin{longtable}'
-        TABLE_END = '\\end{longtable}\n'
+        END_OF_LINE = r'\\' + '\n'
+        HLINE = r'\hline' + '\n'
+        TOPRULE = r'\toprule' + '\n'
+        MIDRULE = r'\midrule' + '\n'
+        
+        TABLE_START = '\n' + r'\begin{longtable}'
+        TABLE_END = r'\bottomrule\end{longtable}' + '\n'
         table = [TABLE_START]
         if columns_to_drop:
             column_alignments = drop_columns(column_alignments, columns_to_drop)
-        table.append('{ |' + '|'.join(column_alignments) + '| }\n')
-        table.append(f"\\caption{{{CAPTION}}}\\\\\n")
+        table.append('{' + ''.join(column_alignments) + '}\n')
+        table.append(fr"\caption{{{CAPTION}}}\\" + '\n')
         if columns_to_drop:
             columns = drop_columns(columns, columns_to_drop)
-        small_columns = [f"\\scriptsize{{{col}}}" for col in columns]
+        small_columns = [fr"\scriptsize{{{col}}}" for col in columns]
 
         header = []
-        header.append(HLINE)
-        header.append(' &'.join([f"\\textbf{{{col}}}" for col in small_columns]))
-        header.append('\\\\ \n')
-        header.append(HLINE)
+        header.append(TOPRULE)
+        header.append(' &'.join([fr"\textbf{{{col}}}" for col in small_columns]))
+        header.append(r'\\' + '\n')
 
         table.append('% header for first page\n')
         table.extend(header)
-        table.append('\\endfirsthead\n')
+        table.append(r'\endfirsthead' + '\n')
 
         table.append('% same header for subsequent pages\n')
         table.extend(header)
-        table.append('\\endhead\n')
+        table.append(MIDRULE)
+        table.append(r'\endhead' + '\n')
 
         for row in rows:
             if columns_to_drop:
                 row = drop_columns(row, columns_to_drop)
+            table.append(MIDRULE)
             table.append(' &'.join(row))
             table.append(END_OF_LINE)
-            table.append(HLINE)
+
         table.append(TABLE_END)
         complete_table = ''.join(table)
         return complete_table
@@ -442,8 +454,11 @@ The hand-curated tables and source code for this analysis are available at \cite
 
 def prepare():
     # git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git
+    result = subprocess.run(['git', 'clone', 'https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git'],
+                            stdout=subprocess.PIPE)
+    if "Cloning into 'paper_2018_curr_opin_sys_biol'" not in result.output:
+        pass
     # test that keys.py exists and contains SERP_API_KEY
-    pass
 
 
 def main():
@@ -453,8 +468,8 @@ def main():
     curated_standards.enrich_with_bib_key()
     curated_standards.enrich_with_survey_data()
     curated_standards.enrich_with_gs_data()
-    curated_standards.enrich_with_pm_ids()
-    curated_standards.enrich_with_num_pm_citations()
+    # curated_standards.enrich_with_pm_ids()
+    # curated_standards.enrich_with_num_pm_citations()
     curated_standards.output_latex_table()
 
 if __name__ == '__main__':
