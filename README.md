@@ -27,9 +27,9 @@ Clone this repository. At the command line, enter:
     git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git
 
 Create a file named `keys.py`.
-Copy the API key provided by [SerpApi](https://serpapi.com/manage-api-key) into the value of `SERP_API_KEY` in the `keys.py` file.
+Define a variable called `SERP_API_KEY` in `keys.py` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
 
-Optionally, create an NCBI API key, and store its value in `NCBI_API_KEY` in the `keys.py` file.
+Optionally, create an NCBI API key, and define a variable called `NCBI_API_KEY` in the `keys.py` file equal to it.
 
 Run this Python program to reproduce the table's data:
 
