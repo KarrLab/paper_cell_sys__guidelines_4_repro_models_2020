@@ -67,12 +67,24 @@ class GoogleScholar(object):
 
 class NCBIUtils(object):
 
-    SLEEP_TIME = 0.4
+    SLEEP_TIME = 2.0
+    NCBI_API_KEY = None
+    # see https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
+    if hasattr(keys, 'NCBI_API_KEY'):
+        NCBI_API_KEY = keys.NCBI_API_KEY
+        SLEEP_TIME = 0.1
+
+    @staticmethod
+    def add_key(url):
+        if NCBIUtils.NCBI_API_KEY:
+            return url + f'&api_key={NCBIUtils.NCBI_API_KEY}'
+        return url
 
     @staticmethod
     def get_pm_id(title):
         """ Get PubMed ID for a title from the PutMed service, if possible """
         url = NCBI_ESEARCH_TEMPLATE.format(urllib.parse.quote(title))
+        url = NCBIUtils.add_key(url)
         errors = []
         time.sleep(NCBIUtils.SLEEP_TIME)
         response = requests.get(url)
@@ -98,6 +110,7 @@ class NCBIUtils(object):
     @staticmethod
     def get_num_citations(pm_id):
         url = NCBI_ELINK_TEMPLATE.format(pm_id)
+        url = NCBIUtils.add_key(url)
         errors = []
         time.sleep(NCBIUtils.SLEEP_TIME)
         response = requests.get(url)
@@ -410,7 +423,7 @@ The hand-curated tables and source code for this analysis are available at \cite
         HLINE = r'\hline' + '\n'
         TOPRULE = r'\toprule' + '\n'
         MIDRULE = r'\midrule' + '\n'
-        
+
         TABLE_START = '\n' + r'\begin{longtable}'
         TABLE_END = r'\bottomrule\end{longtable}' + '\n'
         table = [TABLE_START]
@@ -468,8 +481,8 @@ def main():
     curated_standards.enrich_with_bib_key()
     curated_standards.enrich_with_survey_data()
     curated_standards.enrich_with_gs_data()
-    # curated_standards.enrich_with_pm_ids()
-    # curated_standards.enrich_with_num_pm_citations()
+    curated_standards.enrich_with_pm_ids()
+    curated_standards.enrich_with_num_pm_citations()
     curated_standards.output_latex_table()
 
 if __name__ == '__main__':
