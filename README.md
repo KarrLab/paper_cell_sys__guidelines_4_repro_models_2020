@@ -18,6 +18,7 @@ Running this software requires the following prerequisites:
 1. Git
 1. Python 3
 1. An account to the Google Search API with provided by [SerpApi](https://serpapi.com/). As of April, 2020, [free developer trials](https://serpapi.com/#pricing) are available. The 5,000 searches allowed by a trial will be amply sufficient to run this software.
+1. Optionally, an [NCBI account](https://www.ncbi.nlm.nih.gov/account/), which will speed up the program.
 
 ## Instructions
 
@@ -28,9 +29,11 @@ Clone this repository. At the command line, enter:
 Create a file named `keys.py`.
 Copy the API key provided by [SerpApi](https://serpapi.com/manage-api-key) into the value of `SERP_API_KEY` in the `keys.py` file.
 
-Run this script to reproduce the table's data:
+Optionally, create an NCBI API key, and store its value in `NCBI_API_KEY` in the `keys.py` file.
 
-    reproduce_table_2.sh
+Run this Python program to reproduce the table's data:
+
+    eval_tool_n_standard_import.py
 
 The table will be reproduced in two formats.
 A LaTeX version is provided in `evaluated_standards.tex`.
