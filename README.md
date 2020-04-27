@@ -8,29 +8,31 @@ This Git repository contains data and code used in the paper Veronica Porubsky, 
 
 ## Overview
 This Git repository contains code and data that were used to create Table 2, Standards and tools ordered by estimated influence.
-The table can be reproduced by following the instructions below.
+Reproduce the table by following the instructions below.
 
 ## Prerequisites
 
 Running this software requires the following prerequisites:
 
+1. pip
+1. Git
 1. Python 3
-2. Git
-3. An account to the Google Search API with provided by [SerpApi](https://serpapi.com/). As of April, 2020, [free developer trials](https://serpapi.com/#pricing) are available. The 5,000 searches allowed by a trial will be amply sufficient to run this software.
+1. An account to the Google Search API with provided by [SerpApi](https://serpapi.com/). As of April, 2020, [free developer trials](https://serpapi.com/#pricing) are available. The 5,000 searches allowed by a trial will be amply sufficient to run this software.
+1. Optionally, an [NCBI account](https://www.ncbi.nlm.nih.gov/account/), which will speed up the program.
 
 ## Instructions
 
-Clone this repository. At the command line, enter:
+Clone this repository.
 
-    git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git
+Change directory to `paper_cell_sys__guidelines_4_repro_models_2020`.
+Create a file named `keys.py`. Keep `keys.py` secure.
 
-Change directory into `paper_2018_curr_opin_sys_biol`.
-Create a file named `keys.py`.
-Copy the API key provided by [SerpApi](https://serpapi.com/manage-api-key) into the value of `SERP_API_KEY` in the `keys.py` file.
+Define a variable called `SERP_API_KEY` in `keys.py` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
+Optionally, create an NCBI API key, and define a variable called `NCBI_API_KEY` in the `keys.py` file equal to it.
 
-Run this script to reproduce the table's data:
+Run this Python program to reproduce the table's data:
 
-    reproduce_table_2.sh
+    eval_tool_n_standard_import.py
 
 The table will be reproduced in two formats.
 A LaTeX version is provided in `evaluated_standards.tex`.
