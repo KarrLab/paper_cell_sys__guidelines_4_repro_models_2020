@@ -2,7 +2,6 @@
 
 This Git repository contains data and code used in the paper Veronica Porubsky, Arthur Goldberg, Anand Rampadarath, David Nickerson, Jonathan Karr, and Herbert Sauro, *Ten best practices for making reproducible biochemical models*, Cell Systems, 2020.
 
-[//]: # (Todo: add exact paper reference; check table number and name.)
 [//]: # (Todo: add exact paper reference.)
 
 
@@ -22,22 +21,22 @@ Running this software requires the following prerequisites:
 
 ## Instructions
 
-Clone this repository
+Clone this repository:
 
     git clone https://github.com/KarrLab/paper_cell_sys__guidelines_4_repro_models_2020.git
 
 Change directory to `paper_cell_sys__guidelines_4_repro_models_2020`.
 
 Create a file named `keys.py`.
-Define a variable called `SERP_API_KEY` in `keys.py` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
-Optionally, create an NCBI API key, and define a variable called `NCBI_API_KEY` in the `keys.py` file equal to it.
+In `keys.py` define a variable called `SERP_API_KEY` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
+Optionally, create an NCBI API key, and define a variable called `NCBI_API_KEY` equal to it `keys.py`.
 Be careful to keep `keys.py` secure.
 
-Run this Python program to prepare the computing environment:
+Run a Python program to prepare the computing environment:
 
     python prepare.py
 
-Run this Python program to reproduce the table's data:
+Run a Python program to reproduce the table's data:
 
     python eval_tool_n_standard_import.py
 
