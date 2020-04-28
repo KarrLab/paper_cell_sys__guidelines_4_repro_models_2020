@@ -22,7 +22,8 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 
 
-BIBLIOGRAPHY = 'paper_cell_sys__guidelines_4_repro_models_2020.bib'
+# bibliography for the curated tools and standards
+BIBLIOGRAPHY = 'guidelines_4_repro_models_2020__curated_standards.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
 SURVEY_RESPONSES_FILE = 'paper_2018_curr_opin_sys_biol/survey_responses-edited.xlsx'
 OUTPUT_LATEX_TABLE_FILE = 'evaluated_standards.tex'
@@ -512,18 +513,7 @@ class CuratedStandards(object):
             tmp_rows.append(sized_row)
         rows = tmp_rows
 
-        CAPTION = r"""Standards and tools ordered by estimated influence.
-The standards and tools recommended in this paper are ordered by their annual citation rates for their
-primary publications, as measured by Google Scholar.
-To provide a measure of influence focused on biomedical research PubMed citations per year are shown when available.
-The Type column categorizes each tool by its overall purpose.\\
-\\
-Reproducible methods were used to obtain these data.
-Two hand-curated tables were input: a list of the standards and tools containing the titles of the primary publications, and a LaTeX bibliography containing the papers.
-Each paper's publication year and Google Scholar citation counts were obtained via a Google Scholar API.
-PubMed citation counts were obtained via the PubMed API \cite{sayers2010general}.
-These analyses can be reproduced by executing a single command.
-The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}."""
+        CAPTION = '--Caption goes here.--'
 
         END_OF_LINE = r'\\' + '\n'
         HLINE = r'\hline' + '\n'
@@ -571,12 +561,12 @@ def prepare():
     cmd = 'pip install -r requirements.txt'
     result = subprocess.run(cmd.split(), stdout=subprocess.PIPE)
     if "Requirement" not in str(result.stdout):
-        raise ValueError(f"Error: '{cmd}' failed)")
+        raise ValueError(f"Error: '{cmd}' failed")
 
     cmd = 'git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git'
     result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if "Cloning into 'paper_2018_curr_opin_sys_biol'" not in str(result.stderr):
-        raise ValueError(f"Error: '{cmd}' failed)")
+        raise ValueError(f"Error: '{cmd}' failed; paper_2018_curr_opin_sys_biol/ may need to be removed")
 
     # test that keys.py exists and contains SERP_API_KEY
     msg = "Error: SERP_API_KEY variable must be defined in keys.py"

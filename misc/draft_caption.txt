@@ -1,0 +1,14 @@
+Influence of standards and tools.
+The influence and adoption rates of the standards and tools recommended in this paper are quantified by three measures.
+The annual citation rate for the primary publication is measured by Google Scholar, and, where available, by PubMed. The latter is more indicative of the influence on biomedical research.
+Entries are sorted by their Google Scholar citation rates.
+In addition, data from a survey of 210 members of the biomodeling community that asked which tools, resources or languages they most frequently used have been added~\cite{szigeti2018blueprint}.
+The Type column categorizes each tool by its overall purpose.\\
+\\
+Reproducible methods were used to construct this table.
+Two hand-curated tables were input: a list of the standards and tools containing the titles of their primary publications, and a LaTeX bibliography containing the papers.
+The publication year and Google Scholar citation counts were obtained for each paper via a Google Scholar API.
+PubMed citation counts were obtained via the PubMed API \cite{sayers2010general}.
+Survey results were integrated from a spreadsheet in the GitHub repository~\cite{szigeti2018blueprint_repo} for~\cite{szigeti2018blueprint}.
+These analyses can be reproduced by executing a single command.
+The hand-curated tables and source code for this analysis are available at \cite{GoldbergReproToolsAnalysis}.

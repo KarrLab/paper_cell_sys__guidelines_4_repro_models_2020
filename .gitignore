@@ -6,3 +6,7 @@ __pycache__/
 
 # API keys
 keys.py
+
+# Mac indexing file
+.DS_Store
+
