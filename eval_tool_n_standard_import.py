@@ -237,7 +237,7 @@ class CuratedStandards(object):
                'Paper year',
                'PubMed (cites / yr)',
                'Scholar (cites / yr)',
-               r'Use in survey (\%)')
+               r'Reported use (\%)')
 
     def __init__(self, filename, biblio):
         self.filename = filename
