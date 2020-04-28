@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Estimate relative influence of tools and standards in Ten best practices for making reproducible biochemical models
 
 :Author: Arthur Goldberg <Arthur.Goldberg@mssm.edu>
@@ -13,6 +14,7 @@ import bibtexparser
 import collections
 import csv
 import datetime
+import keys
 import re
 import requests
 import subprocess
@@ -42,7 +44,6 @@ class GoogleScholar(object):
         # To use SerpApi, create an account, get your private API key, create a keys.py file on the Python PATH, assign
         #   SERP_API_KEY = 'your private API key'
         # in keys.py. Keep keys.py secure.
-        import keys
         self.SERP_API_KEY = keys.SERP_API_KEY
 
     def get_gs_results(self, title, mock=False):
@@ -82,7 +83,6 @@ class NCBIUtils(object):
 
     def __init__(self):
         # see https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
-        import keys
         if hasattr(keys, 'NCBI_API_KEY'):
             self.NCBI_API_KEY = keys.NCBI_API_KEY
             self.SLEEP_TIME = 0.15
@@ -555,30 +555,6 @@ class CuratedStandards(object):
             latex_table.write(self.generate_latex_table())
 
 
-def prepare():
-    """ Prepare to create the table: install Python packages; get the survey data; check the keys module
-    """
-    cmd = 'pip install -r requirements.txt'
-    result = subprocess.run(cmd.split(), stdout=subprocess.PIPE)
-    if "Requirement" not in str(result.stdout):
-        raise ValueError(f"Error: '{cmd}' failed")
-
-    cmd = 'git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git'
-    result = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if "Cloning into 'paper_2018_curr_opin_sys_biol'" not in str(result.stderr):
-        raise ValueError(f"Error: '{cmd}' failed; paper_2018_curr_opin_sys_biol/ may need to be removed")
-
-    # test that keys.py exists and contains SERP_API_KEY
-    msg = "Error: SERP_API_KEY variable must be defined in keys.py"
-    try:
-        import keys
-        if not hasattr(keys, 'SERP_API_KEY'):
-            raise ValueError(msg)
-    except Exception:
-        raise ValueError(msg)
-    print('Prepare complete.')
-
-
 def main():
     """ Create the evaluated standards files
     """
@@ -594,5 +570,4 @@ def main():
     curated_standards.output_latex_table()
 
 if __name__ == '__main__':
-    prepare()
     main()
