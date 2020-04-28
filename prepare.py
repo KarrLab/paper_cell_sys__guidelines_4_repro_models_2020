@@ -14,7 +14,8 @@ def prepare():
     """
     cmd = 'pip install -r requirements.txt'
     result = subprocess.run(cmd.split(), stdout=subprocess.PIPE)
-    if "Requirement" not in str(result.stdout):
+    if ('Successfully built' not in str(result.stdout) and
+        'Requirement already satisfied' not in str(result.stdout)):
         raise ValueError(f"Error: '{cmd}' failed")
 
     cmd = 'git clone https://github.com/KarrLab/paper_2018_curr_opin_sys_biol.git'
