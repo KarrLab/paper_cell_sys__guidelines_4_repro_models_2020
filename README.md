@@ -15,7 +15,7 @@ Reproduce the table by following the instructions below.
 Running this software requires the following prerequisites:
 
 1. pip
-1. Git
+1. git
 1. Python 3
 1. An account to the Google Search API with provided by [SerpApi](https://serpapi.com/). As of April, 2020, [free developer trials](https://serpapi.com/#pricing) are available. The 5,000 searches allowed by a trial will be amply sufficient to run this software.
 1. Optionally, an [NCBI account](https://www.ncbi.nlm.nih.gov/account/), which will speed up the program.
