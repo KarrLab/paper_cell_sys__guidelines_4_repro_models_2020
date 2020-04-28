@@ -28,7 +28,7 @@ Clone this repository:
 Change directory to `paper_cell_sys__guidelines_4_repro_models_2020`.
 
 Create a file named `keys.py`.
-In `keys.py` define a variable called `SERP_API_KEY` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
+In it define a variable called `SERP_API_KEY` equal to the API key provided by [SerpApi](https://serpapi.com/manage-api-key).
 Optionally, create an NCBI API key, and define a variable called `NCBI_API_KEY` equal to it `keys.py`.
 Be careful to keep `keys.py` secure.
 
