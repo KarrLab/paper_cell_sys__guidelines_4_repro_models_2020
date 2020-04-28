@@ -41,7 +41,7 @@ Run a Python program to reproduce the table's data:
 
     python eval_tool_n_standard_import.py
 
-The table will be reproduced in two formats.
+The table will be updated in two formats.
 A LaTeX version is provided in `evaluated_standards.tex` and a `tsv` version is provided in `evaluated_standards.tsv`.
 
 ## Questions or feedback
