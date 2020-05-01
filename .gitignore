@@ -7,6 +7,15 @@ __pycache__/
 # API keys
 keys.py
 
-# Mac indexing file
+# temporary files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.~lock.*
+Thumbs.db
+~$*.xlsx
+~$*.xls
+.~*.xlsx
 
