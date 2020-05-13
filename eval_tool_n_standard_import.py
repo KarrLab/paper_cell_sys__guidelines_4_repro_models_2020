@@ -513,6 +513,7 @@ class CuratedStandards(object):
             tmp_rows.append(sized_row)
         rows = tmp_rows
 
+        CAPTION_INSTRUCTIONS = "%% Obtain caption from the file 'evaluated_standards_caption.txt'"
         CAPTION = '--Caption goes here.--'
 
         END_OF_LINE = r'\\' + '\n'
@@ -524,6 +525,7 @@ class CuratedStandards(object):
         TABLE_END = r'\bottomrule\end{longtable}' + '\n'
         table = [TABLE_START]
         table.append('{' + ''.join(column_alignments) + '}\n')
+        table.append(CAPTION_INSTRUCTIONS + '\n')
         table.append(fr"\caption{{{CAPTION}}}\\" + '\n')
         small_columns = [fr"\scriptsize{{{col}}}" for col in self.columns]
 
