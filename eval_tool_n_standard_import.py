@@ -28,7 +28,8 @@ import xml.etree.ElementTree as ET
 BIBLIOGRAPHY = 'guidelines_4_repro_models_2020__curated_standards.bib'
 CURATED_STANDARDS_FILE = 'curated_standards.xlsx'
 SURVEY_RESPONSES_FILE = 'paper_2018_curr_opin_sys_biol/survey_responses-edited.xlsx'
-OUTPUT_LATEX_TABLE_FILE = 'evaluated_standards.tex'
+LATEX_TABLE_FILE = 'evaluated_standards.tex'
+LATEX_TABLE_CITATIONS_FILE = 'evaluated_standards_citations.tex'
 EVALUATED_STANDARDS_FILE = 'evaluated_standards.tsv'
 TOOL_EMAIL = 'tool=mssm_citation_research&email=Arthur.Goldberg%40mssm.edu'
 EUTILS = 'eutils.ncbi.nlm.nih.gov/entrez/eutils'
@@ -230,8 +231,7 @@ class CuratedStandards(object):
     GS_CITATIONS = 'GS_citations'
     SURVEY_ADOPTION_RATE = 'survey_adoption_rate'
 
-    # columns: standard, type, title with reference, year published, PM citations / year, GS citations / year
-    columns = (STANDARD,
+    COLUMNS = (STANDARD,
                'Type of standard / tool',
                'Most cited paper',
                'Paper year',
@@ -421,7 +421,7 @@ class CuratedStandards(object):
         evaluated_standards = self.generate_data_table()
         with open(EVALUATED_STANDARDS_FILE, 'w', newline='') as csvfile:
             evaluated_standards_writer = csv.writer(csvfile, delimiter='\t')
-            evaluated_standards_writer.writerow(self.columns)
+            evaluated_standards_writer.writerow(self.COLUMNS)
             for row in evaluated_standards:
                 evaluated_standards_writer.writerow(row)
 
@@ -431,7 +431,7 @@ class CuratedStandards(object):
         Returns:
             :obj:`list` of :obj:`list`: the curated standards data, in a list of rows
         """
-        n_columns = len(self.columns)
+        n_columns = len(self.COLUMNS)
         current_year = self.year_fraction(datetime.datetime.today())
         rows = []
         for curated_standard in self.curated_standards:
@@ -480,28 +480,53 @@ class CuratedStandards(object):
 \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 """
-    def generate_latex_table(self):
+    COLUMN_ALIGNMENTS = ('L{2.2cm}',
+                         'L{4cm}',
+                         'L{1cm}',
+                         'L{0.8cm}',
+                         'R{1.1cm}',
+                         'R{1cm}',
+                         'R{1cm}')
+    SMALL_COLUMNS = (True,
+                     True,
+                     False,
+                     True,
+                     True,
+                     True,
+                     True)
+
+    def generate_latex_table(self, columns=None, column_alignments=None, small_columns=None):
         """ Convert the enriched, curated standards into a LaTeX table
+
+        Args:
+            columns (:obj:`tuple`): sequence of names of column headers
+            column_alignments (:obj:`tuple`): sequence of column widths and alignments
+            small_columns (:obj:`tuple` of :obj:`bool`): sequence indicating whether column text should be small
 
         Returns:
             :obj:`str`: the LaTeX table
         """
-        column_alignments = ('L{2.2cm}',
-                             'L{4cm}',
-                             'L{1cm}',
-                             'L{0.8cm}',
-                             'R{1.1cm}',
-                             'R{1cm}',
-                             'R{1cm}')
-        small_columns = (1,
-                         1,
-                         0,
-                         1,
-                         1,
-                         1,
-                         1)
-        n_columns = len(self.columns)
+        if columns is None:
+            columns=self.COLUMNS
+        n_columns = len(columns)
+        if column_alignments is None:
+            column_alignments=self.COLUMN_ALIGNMENTS
+        if small_columns is None:
+            small_columns=self.SMALL_COLUMNS
         rows = self.generate_data_table()
+
+        # select the data requested in columns in rows
+        if columns != self.COLUMNS:
+            chosen_cols = []
+            for col in columns:
+                chosen_cols.append(self.COLUMNS.index(col))
+            filtered_rows = []
+            for row in rows:
+                new_row = []
+                for cc in chosen_cols:
+                    new_row.append(row[cc])
+                filtered_rows.append(new_row)
+            rows = filtered_rows
 
         tmp_rows = []
         for row in rows:
@@ -527,7 +552,7 @@ class CuratedStandards(object):
         table.append('{' + ''.join(column_alignments) + '}\n')
         table.append(CAPTION_INSTRUCTIONS + '\n')
         table.append(fr"\caption{{{CAPTION}}}\\" + '\n')
-        small_columns = [fr"\scriptsize{{{col}}}" for col in self.columns]
+        small_columns = [fr"\scriptsize{{{col}}}" for col in columns]
 
         header = []
         header.append(TOPRULE)
@@ -552,9 +577,15 @@ class CuratedStandards(object):
         complete_table = ''.join(table)
         return complete_table
 
-    def output_latex_table(self, filename=OUTPUT_LATEX_TABLE_FILE):
+    def output_latex_table(self, filename=LATEX_TABLE_FILE):
         with open(filename, 'w') as latex_table:
             latex_table.write(self.generate_latex_table())
+
+    def output_latex_table_of_citations(self, filename=LATEX_TABLE_CITATIONS_FILE):
+        with open(filename, 'w') as latex_table:
+            latex_table.write(self.generate_latex_table(columns=['Most cited paper'],
+                                                        column_alignments=['L{16cm}'],
+                                                        small_columns=[False]))
 
 
 def main():
@@ -570,6 +601,7 @@ def main():
     curated_standards.enrich_with_num_pm_citations()
     curated_standards.write_evaluated_standards_file()
     curated_standards.output_latex_table()
+    curated_standards.output_latex_table_of_citations()
 
 if __name__ == '__main__':
     main()
