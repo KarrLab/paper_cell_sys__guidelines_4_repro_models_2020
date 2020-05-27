@@ -1,12 +1,12 @@
-# Data and code for Veronica Porubsky, et al., *Ten best practices for making reproducible biochemical models*, Cell Systems, 2020
+# Data and code for Veronica Porubsky, et al., *Best practices for making reproducible biochemical models*, Cell Systems, 2020
 
-This Git repository contains data and code used in the paper Veronica Porubsky, Arthur Goldberg, Anand Rampadarath, David Nickerson, Jonathan Karr, and Herbert Sauro, *Ten best practices for making reproducible biochemical models*, Cell Systems, 2020.
+This Git repository contains data and code used in the paper Veronica Porubsky, Arthur Goldberg, Anand Rampadarath, David Nickerson, Jonathan Karr, and Herbert Sauro, *Best practices for making reproducible biochemical models*, Cell Systems, 2020.
 
 [//]: # (Todo: add exact paper reference.)
 
 
 ## Overview
-This Git repository contains code and data that were used to create Table 2, Standards and tools ordered by estimated influence.
+This Git repository contains code and data that were used to create Table 2, Influence of standards and tools.
 Reproduce the table by following the instructions below.
 
 ## Prerequisites
