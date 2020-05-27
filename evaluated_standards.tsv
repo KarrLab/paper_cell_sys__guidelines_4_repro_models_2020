@@ -1,8 +1,8 @@
 Standard / tool	Type of standard / tool	Most cited paper	Paper year	PubMed (cites / yr)	Scholar (cites / yr)	Reported use (\%)
-SciPy optimize, ODE solver, etc.	Simulator	\cite{virtanen2020scipy}	2020	40.1	887.4	
-FAIR	Modeling process guidelines	\cite{Wilkinson2016TheStewardship.}	2016	142.1	591.1	
-SBML	Modeling language	\cite{Hucka2003TheModels}	2003	50.0	183.9	69.5
-COPASI	Modeling application	\cite{Hoops2006COPASI--aSImulator}	2006		149.7	31.7
+SciPy optimize, ODE solver, etc.	Simulator	\cite{virtanen2020scipy}	2020	39.8	881.4	
+FAIR	Modeling process guidelines	\cite{Wilkinson2016TheStewardship.}	2016	142.0	590.7	
+SBML	Modeling language	\cite{Hucka2003TheModels}	2003	50.0	183.8	69.5
+COPASI	Modeling application	\cite{Hoops2006COPASI--aSImulator}	2006		149.6	31.7
 SBGN	Modeling visualization language	\cite{Novere2009TheNotation}	2009		71.0	2.4
 COBRApy	Simulator	\cite{ebrahim2013cobrapy}	2013	22.2	59.6	11.3
 BioPAX	Biochemical data manager	\cite{Demir2010TheSharing.}	2010	24.8	56.5	
@@ -16,7 +16,7 @@ Data2Dynamics	Parameter estimation tool	\cite{Raue2015Data2Dynamics:Systems}	201
 BioNetGen	Modeling language	\cite{Harris2016BioNetGenModeling}	2016	7.7	22.5	8.5
 SED-ML	Simulation description language	\cite{Waltemath2011ReproducibleLanguage}	2011	8.2	20.6	
 JWS Online	Modeling application	\cite{Olivier2004Web-basedOnline}	2004	4.6	19.9	5.4
-PySB	Modeling language	\cite{Lopez2013ProgrammingPySB}	2013	6.4	19.6	6.5
+PySB	Modeling language	\cite{Lopez2013ProgrammingPySB}	2013	6.3	19.6	6.5
 CellML	Modeling language	\cite{Cuellar2003AnLanguage}	2003		18.2	7.3
 VCell	Modeling application	\cite{moraru2008virtual}	2008	6.0	17.7	2.7
 MIASE	Modeling process guidelines	\cite{Waltemath2011MinimumMIASE}	2011	3.3	12.4	
@@ -43,3 +43,4 @@ SciUnit	Validation tool	\cite{Omar2014CollaborativeValidation}	2014		2.3
 SEPIO	Ontology	\cite{Brush2016SEPIO:Evidence}	2016		1.8	
 KiSAO	Ontology	\cite{Zhukova2011KineticOntology}	2007		1.1	
 BpForms and BcForms	Biochemical data format	\cite{Lang2019BpForms:Proteins}	2019		0.7	
+ObjTables	Biochemical data format	\cite{karr2020structured}	2020		0.0	

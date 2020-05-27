@@ -72,7 +72,9 @@ class GoogleScholar(object):
             errors.append(f"cannot get year for {title}")
         else:
             pub_year = int(match.group(1))
-        num_citations = data['organic_results'][0]["inline_links"]["cited_by"]["total"]
+        num_citations = 0
+        if "cited_by" in data['organic_results'][0]["inline_links"]:
+            num_citations = data['organic_results'][0]["inline_links"]["cited_by"]["total"]
         gs_title = data['organic_results'][0]["title"]
         return gs_title, num_citations, pub_year, errors
 
